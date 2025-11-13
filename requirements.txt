@@ -1,0 +1,15 @@
+aiohttp==3.13.2
+numpy==2.3.4
+openai==2.7.2
+pytest==8.3.5
+requests==2.32.5
+termcolor==3.2.0
+tiktoken==0.12.0
+tqdm==4.67.1
+typer==0.20.0
+black == 23.3.0
+mypy == 1.3.0
+pre-commit == 3.3.3
+ruff == 0.0.272
+rudder-sdk-python == 2.0.2
+dataclasses-json == 0.5.7
