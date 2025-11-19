@@ -23,6 +23,9 @@ def runTests_getTaskID(sample_code_file, tests_file, save_path=None):
     if save_path is None:
         save_path = sample_code_file.replace(".jsonl", "_needcq.jsonl")
 
+    # Garante que o diretório existe
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
     with open(save_path, 'w') as w:
         for tests_line, sample_code_line in tqdm(zip(tests_lines, sample_code_lines)):
             tests_line = json.loads(tests_line)
@@ -416,7 +419,7 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
 
 if __name__ == '__main__':
     # Criar diretório de dados se não existir
-    data_dir = os.path.join('data', 'clarifygpt_mbpp')
+    data_dir = os.path.join('..', 'data')
     os.makedirs(data_dir, exist_ok=True)
     
     # Função auxiliar para garantir que o diretório de um arquivo existe
@@ -438,49 +441,61 @@ if __name__ == '__main__':
     
     inference_type = 'three_shot'
 
-    sample_code_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl')
+    sample_code_file = os.path.join('data', 'mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl')
     ensure_file_exists(sample_code_file)
 
-    test_case_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_tests_final.jsonl')
+    test_case_file = os.path.join('data', 'mbpp_tests_final.jsonl')
     ensure_file_exists(test_case_file)
 
-    mbpp_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft.jsonl')
+    mbpp_file = os.path.join('data', 'mbpp_sanitized_microsoft.jsonl')
     ensure_file_exists(mbpp_file)
 
-    greedy_generate_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl')
+    greedy_generate_file = os.path.join('data', 'mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl')
     ensure_file_exists(greedy_generate_file)
+    # greedy_generate_file = os.path.join('..', 'data', 'generated_test_data', 'test_humaneval_data_results.jsonl')
+    n = 1
+    synthesize_results_list = []
+    # for i in range(n):
+    #     synthesize_results_list.append(os.path.join('..', 'data', f'mbpp_synthesize_{inference_type}_{i}_chatgpt_results.jsonl'))
 
-    needcq_path = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_needcq_chatgpt.jsonl')
+    needcq_path = os.path.join('data', 'mbpp_needcq_chatgpt.jsonl')
     ensure_file_exists(needcq_path)
-    # needcq_path = runTests_getTaskID(sample_code_file, test_case_file, needcq_path)
+    # needcq_path = runTests_getTaskID(sample_code_file, test_case_file,
+    #                                  os.path.join('..', 'data', 'mbpp_needcq_chatgpt.jsonl'))
+    #
+    for i in [0]:
+        askcq_path = os.path.join('data', f'mbpp_askcq_{inference_type}_{i}_chatgpt_wo_test.jsonl')
+        print(askcq_path)
+        ensure_file_exists(askcq_path)
 
-    ask_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_askcq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(ask_path)
-    ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path, ask_path)
-    ensure_file_exists(ask_path)
-    ensure_file_exists(ask_results_path)
+        ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path, askcq_path)
+        ensure_file_exists(ask_path)
+        ensure_file_exists(ask_results_path)
 
-    answer_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_answercq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(answer_path)
-    answer_path, answer_results_path = answercq_w_test_runRequest(
-        os.path.join('data', 'clarifygpt_mbpp', 'mbpp_test_cases_chatgpt.jsonl'),
-        inference_type + '_w_test',
-        needcq_path,
-        ask_results_path,
-        answer_path)
-    ensure_file_exists(answer_path)
-    ensure_file_exists(answer_results_path)
+        answercq_path = os.path.join('data', f'mbpp_answercq_{inference_type}_{i}_chatgpt_wo_test.jsonl')
+        ensure_file_exists(answercq_path)
+        print(ask_results_path)
 
-    synthesize_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_synthesize_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(synthesize_path)
-    synthesize_path, synthesize_results_path = synthesize_runRequest(inference_type, needcq_path,
-                                                                     ask_results_path,
-                                                                     answer_results_path,
-                                                                     synthesize_path)
-    ensure_file_exists(synthesize_results_path)
 
-    final_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_final_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(final_path)
-    generate_file(mbpp_file, greedy_generate_file, needcq_path,
-                  [synthesize_results_path],
-                  final_path)
+        answer_path, answer_results_path = answercq_runRequest(inference_type, needcq_path, ask_results_path, answercq_path)
+        ensure_file_exists(answer_path)
+        ensure_file_exists(answer_results_path)
+        # answer_path, answer_results_path = answercq_w_test_runRequest(os.path.join('..', 'data', 'mbpp_test_cases_chatgpt.jsonl'),
+        #                                                               inference_type + '_w_test', needcq_path,
+        #                                                               os.path.join('..', 'data', f'mbpp_askcq_{inference_type}_{i}_chatgpt_results.jsonl'),
+        #                                                               os.path.join('..', 'data', f'mbpp_answercq_{inference_type}_{i}_chatgpt.jsonl'))
+
+        synthesize_path = os.path.join('data', f'mbpp_synthesize_{inference_type}_{i}_chatgpt_wo_test.jsonl')
+        ensure_file_exists(synthesize_path)
+        synthesize_path, synthesize_results_path = synthesize_runRequest(inference_type, needcq_path,
+                                                                         ask_results_path,
+                                                                         answer_results_path,
+                                                                         synthesize_path)
+        ensure_file_exists(synthesize_results_path)
+        # synthesize_results_list.append(synthesize_results_path)
+
+        final_path = os.path.join('data', f'mbpp_final_{inference_type}_chatgpt_{i}_wo_test.jsonl')
+        ensure_file_exists(final_path)
+        generate_file(mbpp_file, greedy_generate_file, needcq_path,
+                      [synthesize_results_path],
+                      final_path)
