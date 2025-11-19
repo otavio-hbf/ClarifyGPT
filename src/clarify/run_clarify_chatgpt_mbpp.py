@@ -7,6 +7,11 @@ from src.prompt.prompt_mbpp import *
 import functools
 from threading import Thread
 from tqdm import tqdm
+from dotenv import load_dotenv
+# Carrega as variáveis do .env que está na mesma pasta deste arquivo
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+dotenv_path = os.path.abspath(dotenv_path)
+load_dotenv(dotenv_path=dotenv_path)
 
 
 # 1. run sample codes on tests, get task_id of the unclear prompts
@@ -148,7 +153,7 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
         os.makedirs(results_dir, exist_ok=True)
     
     # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path)
+    parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
 
     return askcq_path, askcq_results_path
 
@@ -211,7 +216,7 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
         os.makedirs(results_dir, exist_ok=True)
     
     # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path)
+    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
 
     return answercq_path, answercq_results_path
 
@@ -284,7 +289,7 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
         os.makedirs(results_dir, exist_ok=True)
     
     # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path)
+    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
 
     return answercq_path, answercq_results_path
 
@@ -355,7 +360,7 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
         os.makedirs(results_dir, exist_ok=True)
     
     # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path)
+    parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path, api_key= os.getenv("OPENAI_API_KEY"))
     # assert 1==2
     return synthesize_path, synthesize_results_path
 
@@ -418,7 +423,7 @@ if __name__ == '__main__':
     # Criar diretório de dados se não existir
     data_dir = os.path.join('data', 'clarifygpt_mbpp')
     os.makedirs(data_dir, exist_ok=True)
-    
+
     # Função auxiliar para garantir que o diretório de um arquivo existe
     def ensure_dir_exists(filepath):
         """Garante que o diretório do arquivo existe"""
