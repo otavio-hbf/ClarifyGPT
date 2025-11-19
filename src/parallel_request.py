@@ -330,7 +330,7 @@ def num_tokens_consumed_from_request(
     encoding = tiktoken.get_encoding(token_encoding_name)
     # if completions request, tokens = prompt + n * max_tokens
     if api_endpoint.endswith("completions"):
-        max_tokens = request_json.get("max_tokens", 15)
+        max_tokens = request_json.get("max_completion_tokens", 15)
         n = request_json.get("n", 1)
         completion_tokens = n * max_tokens
 
@@ -394,6 +394,7 @@ def parallel_request_openai(
         max_attempts=50,
         logging_level=logging.INFO):
 
+    print(api_key)
     if save_filepath is None:
         save_filepath = requests_filepath.replace(".jsonl", "_results.jsonl")
     if log_save_filepath is None:

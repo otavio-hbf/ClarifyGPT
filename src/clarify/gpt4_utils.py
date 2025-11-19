@@ -37,7 +37,7 @@ class FewShotLLM(object):
         return messages
 
     def _request(self, max_tokens, temperature, n, messages: List[Dict[str, str]]) -> str:
-        params = {"max_tokens": max_tokens, "temperature": temperature, "n": n, "stop": None, "top_p": 0.95,
+        params = {"max_completion_tokens": max_tokens, "temperature": temperature, "n": n, "stop": None, "top_p": 0.95,
                   "messages": messages}
 
         resp = requests.post(self.url, json=params, headers=self.headers)

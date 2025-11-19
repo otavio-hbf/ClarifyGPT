@@ -128,11 +128,11 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                     'role': 'user',
                     'content': f'User Requirement:\n{ori_prompt.strip()}\n{code_string.strip()}'
                 })
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='gpt-5-nano-2025-08-07',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=800,
-                             top_p=0.95,
+                             temperature=1.0,
+                             max_completion_tokens=800,
+                             top_p=1,
                              frequency_penalty=0,
                              presence_penalty=0,
                              n=1,
@@ -192,11 +192,11 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='gpt-5-nano-2025-08-07',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
-                             top_p=0.95,
+                             temperature=1.0,
+                             max_completion_tokens=300,
+                             top_p=1,
                              frequency_penalty=0,
                              presence_penalty=0,
                              n=1,
@@ -261,11 +261,11 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='gpt-5-nano-2025-08-07',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
-                             top_p=0.95,
+                             temperature=1.0,
+                             max_completion_tokens=300,
+                             top_p=1,
                              frequency_penalty=0,
                              presence_penalty=0,
                              n=1,
@@ -333,11 +333,11 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                            # f'\n{clarification}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='gpt-5-nano-2025-08-07',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
-                             top_p=0.95,
+                             temperature=1.0,
+                             max_completion_tokens=300,
+                             top_p=1,
                              frequency_penalty=0,
                              presence_penalty=0,
                              n=1,

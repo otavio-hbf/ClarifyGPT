@@ -137,8 +137,8 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                 })
             json_dict = dict(model='gpt-3.5-turbo',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=720,
+                             temperature=1.0,
+                             max_completion_tokens=720,
                              top_p=0.95,
                              frequency_penalty=0,
                              presence_penalty=0,
@@ -192,8 +192,8 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
 
             json_dict = dict(model='gpt-3.5-turbo',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
+                             temperature=1.0,
+                             max_completion_tokens=300,
                              top_p=0.95,
                              frequency_penalty=0,
                              presence_penalty=0,
@@ -253,8 +253,8 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
 
             json_dict = dict(model='gpt-3.5-turbo',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
+                             temperature=1.0,
+                             max_completion_tokens=300,
                              top_p=0.95,
                              frequency_penalty=0,
                              presence_penalty=0,
@@ -314,8 +314,8 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
 
             json_dict = dict(model='gpt-3.5-turbo',
                              messages=openai_messages,
-                             temperature=0.0,
-                             max_tokens=300,
+                             temperature=1.0,
+                             max_completion_tokens=300,
                              top_p=0.95,
                              frequency_penalty=0,
                              presence_penalty=0,
