@@ -151,6 +151,7 @@ def parse_cq(model_name, generated_cq):
 
 
 def parse_cq_mbpp(generated_cq):
+    print(generated_cq)
     assert '### Clarifying Question' in generated_cq
     generated_cq_list = generated_cq.split('\n')
     iidx = 0
