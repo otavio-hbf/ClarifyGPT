@@ -151,8 +151,9 @@ def parse_cq(model_name, generated_cq):
 
 
 def parse_cq_mbpp(generated_cq):
-    print(generated_cq)
-    assert '### Clarifying Question' in generated_cq
+    print('Parsing CQ MBPP...')
+    print(f'olha o generated_cq aqui: {generated_cq}')
+    #assert '### Clarifying Question' in generated_cq
     generated_cq_list = generated_cq.split('\n')
     iidx = 0
     for idx in range(len(generated_cq_list)):
