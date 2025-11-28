@@ -1,5 +1,11 @@
 import json
+import os
+from dotenv import load_dotenv
 
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+dotenv_path = os.path.abspath(dotenv_path)
+load_dotenv(dotenv_path=dotenv_path)
+MODEL_NAME = os.getenv("MODEL_NAME")
 
 def sort_parallel_datalines(data_lines):
     unsorted_data_line = [(int(json.loads(data_line)[0]['task_id']), data_line) for data_line in data_lines]
@@ -34,7 +40,7 @@ def clean_format(generated_code):
 
 
 def parse_code_w_prompt(model_name, generated_code, prompt, entry_point):
-    if 'gpt-3.5' in model_name:
+    if MODEL_NAME in model_name:
         gen = clean_format(generated_code)
         func_sig = 'def ' + entry_point + '('
         if gen.startswith(prompt.strip()):
@@ -65,7 +71,7 @@ def parse_code_w_prompt(model_name, generated_code, prompt, entry_point):
 
 
 def parse_code_w_prompt_mbpp(model_name, generated_code, prompt, entry_point):
-    if 'gpt-3.5' in model_name:
+    if MODEL_NAME in model_name:
         gen = clean_format(generated_code)
         func_sig = 'def ' + entry_point
 
@@ -83,7 +89,7 @@ def parse_code_w_prompt_mbpp(model_name, generated_code, prompt, entry_point):
 
 
 def parse_code_wo_prompt(model_name, generated_code, prompt, entry_point):
-    if 'gpt-3.5' in model_name:
+    if MODEL_NAME in model_name:
         gen = clean_format(generated_code)
 
         func_sig = 'def ' + entry_point
@@ -122,7 +128,7 @@ def parse_code_wo_prompt(model_name, generated_code, prompt, entry_point):
 
 
 def parse_cq(model_name, generated_cq):
-    if 'gpt-3.5' in model_name:
+    if MODEL_NAME in model_name:
         if 'Clarifying Questions:' in generated_cq:
             cq = generated_cq.split('Clarifying Questions:')[-1]
         else:
@@ -157,7 +163,7 @@ def parse_cq_mbpp(generated_cq):
 
 
 def parse_answer(model_name, generated_ans):
-    if 'gpt-3.5' in model_name:
+    if MODEL_NAME in model_name:
         if 'Answers:\n' in generated_ans:
             ans = generated_ans.split('Answers:\n')[-1]
         else:

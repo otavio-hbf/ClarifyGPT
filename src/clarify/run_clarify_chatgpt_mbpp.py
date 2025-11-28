@@ -13,6 +13,7 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 dotenv_path = os.path.abspath(dotenv_path)
 load_dotenv(dotenv_path=dotenv_path)
 
+MODEL_NAME = os.getenv("MODEL_NAME")
 
 # 1. run sample codes on tests, get task_id of the unclear prompts
 def runTests_getTaskID(sample_code_file, tests_file, save_path=None):
@@ -41,7 +42,7 @@ def runTests_getTaskID(sample_code_file, tests_file, save_path=None):
             all_test_results = {}
             for i in range(15):
                 generated_raw_code = sample_code_line[2]['choices'][i]["message"]['content']
-                complete_code = parse_code_w_prompt_mbpp('gpt-3.5', generated_raw_code, prompt, entry_point)
+                complete_code = parse_code_w_prompt_mbpp(MODEL_NAME, generated_raw_code, prompt, entry_point)
                 test_result = []
                 for test in tests:
                     test_list = test.split('\n')
@@ -128,14 +129,16 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                     'role': 'user',
                     'content': f'User Requirement:\n{ori_prompt.strip()}\n{code_string.strip()}'
                 })
-            json_dict = dict(model='gpt-5-nano-2025-08-07',
+            json_dict = dict(model=MODEL_NAME,
                              messages=openai_messages,
                              temperature=1.0,
                              max_completion_tokens=800,
                              top_p=1,
                              frequency_penalty=0,
                              presence_penalty=0,
-                             n=1,
+                             n=1
+                            #  reasoning='low',
+                            #  verbosity='low'
                              )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
@@ -192,7 +195,7 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-5-nano-2025-08-07',
+            json_dict = dict(model=MODEL_NAME,
                              messages=openai_messages,
                              temperature=1.0,
                              max_completion_tokens=300,
@@ -234,6 +237,9 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
 
     # sort
     data_lines = sort_parallel_datalines(data_lines)
+    print(f"askcq_results_path (data_lines): {len(data_lines)}")
+    print(f"needcq_file (ori_data_lines): {len(ori_data_lines)}")
+    print(f"test_file (test_lines): {len(test_lines)}")
     assert len(data_lines) == len(ori_data_lines) == len(test_lines)
 
     if answercq_path is None:
@@ -248,6 +254,7 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
             data_line = json.loads(data_line)
             test_line = json.loads(test_line)
             assert test_line['task_id'] == ori_data_line['task_id']
+            print(data_line[2]['choices'][0]["message"]['content'])
             cq = parse_cq_mbpp(data_line[2]['choices'][0]["message"]['content'])
             python_func = test_line['solution']
             test_cases = '\n'.join(test_line['test_list'])
@@ -261,7 +268,7 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-5-nano-2025-08-07',
+            json_dict = dict(model=MODEL_NAME,
                              messages=openai_messages,
                              temperature=1.0,
                              max_completion_tokens=300,
@@ -333,7 +340,7 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                            # f'\n{clarification}'
             })
 
-            json_dict = dict(model='gpt-5-nano-2025-08-07',
+            json_dict = dict(model=MODEL_NAME,
                              messages=openai_messages,
                              temperature=1.0,
                              max_completion_tokens=300,
@@ -412,7 +419,7 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
                     idx = modified_code_dict['task_id_list'].index(task_id)
                     generated_raw_code = modified_code_dict['code_list'][greedy_idx][idx]
                     ori_prompt = ori_data_line['prompt']
-                    code_completion = parse_code_wo_prompt('gpt-3.5', generated_raw_code, ori_prompt, entry_point)
+                    code_completion = parse_code_wo_prompt(MODEL_NAME, generated_raw_code, ori_prompt, entry_point)
                     json.dump(dict(prompt=ori_data_line['prompt'], samples=[code_completion]), w)
                     w.write('\n')
 
