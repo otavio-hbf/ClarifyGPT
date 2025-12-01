@@ -15,6 +15,7 @@ build/
 .env
 .env.sh
 venv/
+.venv/
 ENV/
 
 # IDE-specific files
