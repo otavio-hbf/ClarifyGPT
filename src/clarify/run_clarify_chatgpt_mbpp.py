@@ -129,17 +129,16 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                     'role': 'user',
                     'content': f'User Requirement:\n{ori_prompt.strip()}\n{code_string.strip()}'
                 })
-            json_dict = dict(model=MODEL_NAME,
-                             messages=openai_messages,
-                             temperature=1.0,
-                             max_completion_tokens=800,
-                             top_p=1,
-                             frequency_penalty=0,
-                             presence_penalty=0,
-                             n=1
-                            #  reasoning='low',
-                            #  verbosity='low'
-                             )
+            json_dict = dict(
+                model=MODEL_NAME,
+                messages=openai_messages,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                # top_p=0.95,  # Remove: not supported by GPT-5 Nano
+                frequency_penalty=0,
+                presence_penalty=0,
+                n=1,
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -149,15 +148,10 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
 
     if askcq_results_path is None:
         askcq_results_path = askcq_path.replace(".jsonl", "_results.jsonl")
-    
-    # Garanta que o diretório para resultados existe
-    results_dir = os.path.dirname(askcq_results_path)
-    if results_dir:
-        os.makedirs(results_dir, exist_ok=True)
-    
-    # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
-
+    # ensure fresh results file
+    if os.path.exists(askcq_results_path):
+        os.remove(askcq_results_path)
+    parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
     return askcq_path, askcq_results_path
 
 
@@ -195,15 +189,16 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model=MODEL_NAME,
-                             messages=openai_messages,
-                             temperature=1.0,
-                             max_completion_tokens=300,
-                             top_p=1,
-                             frequency_penalty=0,
-                             presence_penalty=0,
-                             n=1,
-                             )
+            json_dict = dict(
+                model=MODEL_NAME,
+                messages=openai_messages,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                # top_p=1,  # Remove: not supported by GPT-5 Nano
+                frequency_penalty=0,
+                presence_penalty=0,
+                n=1,
+                )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -212,15 +207,9 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
 
     if answercq_results_path is None:
         answercq_results_path = answercq_path.replace(".jsonl", "_results.jsonl")
-    
-    # Garanta que o diretório para resultados existe
-    results_dir = os.path.dirname(answercq_results_path)
-    if results_dir:
-        os.makedirs(results_dir, exist_ok=True)
-    
-    # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
-
+    if os.path.exists(answercq_results_path):
+        os.remove(answercq_results_path)
+    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
     return answercq_path, answercq_results_path
 
 
@@ -268,15 +257,16 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model=MODEL_NAME,
-                             messages=openai_messages,
-                             temperature=1.0,
-                             max_completion_tokens=300,
-                             top_p=1,
-                             frequency_penalty=0,
-                             presence_penalty=0,
-                             n=1,
-                             )
+            json_dict = dict(
+                model=MODEL_NAME,
+                messages=openai_messages,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                # top_p=1,  # Remove: not supported by GPT-5 Nano
+                frequency_penalty=0,
+                presence_penalty=0,
+                n=1,
+                )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-3]['content'])
             # print(json_dict['messages'][-2]['content'])
@@ -289,15 +279,9 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
         answercq_results_path = answercq_path.replace(".jsonl", "_results.jsonl")
     else:
         answercq_results_path = answercq_results_path
-    
-    # Garanta que o diretório para resultados existe
-    results_dir = os.path.dirname(answercq_results_path)
-    if results_dir:
-        os.makedirs(results_dir, exist_ok=True)
-    
-    # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key= os.getenv("OPENAI_API_KEY"))
-
+    if os.path.exists(answercq_results_path):
+        os.remove(answercq_results_path)
+    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
     return answercq_path, answercq_results_path
 
 
@@ -340,15 +324,16 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                            # f'\n{clarification}'
             })
 
-            json_dict = dict(model=MODEL_NAME,
-                             messages=openai_messages,
-                             temperature=1.0,
-                             max_completion_tokens=300,
-                             top_p=1,
-                             frequency_penalty=0,
-                             presence_penalty=0,
-                             n=1,
-                             )
+            json_dict = dict(
+                model=MODEL_NAME,
+                messages=openai_messages,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                # top_p=1,  # Remove: not supported by GPT-5 Nano
+                frequency_penalty=0,
+                presence_penalty=0,
+                n=1,
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][1]['content'])
             # print(json_dict['messages'][2]['content'])
@@ -360,15 +345,9 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
 
     if synthesize_results_path is None:
         synthesize_results_path = synthesize_path.replace(".jsonl", "_results.jsonl")
-    
-    # Garanta que o diretório para resultados existe
-    results_dir = os.path.dirname(synthesize_results_path)
-    if results_dir:
-        os.makedirs(results_dir, exist_ok=True)
-    
-    # Executa a requisição paralela
-    parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path, api_key= os.getenv("OPENAI_API_KEY"))
-    # assert 1==2
+    if os.path.exists(synthesize_results_path):
+        os.remove(synthesize_results_path)
+    parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path, api_key=os.getenv("OPENAI_API_KEY"))
     return synthesize_path, synthesize_results_path
 
 
