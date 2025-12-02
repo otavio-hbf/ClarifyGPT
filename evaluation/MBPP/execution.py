@@ -8,7 +8,7 @@ from collections import defaultdict
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import logging
 
-from _execution import check_correctness, check_correctness_with_test_cases
+from ._execution import check_correctness, check_correctness_with_test_cases
 
 logging.basicConfig(
     format="SystemLog: [%(asctime)s][%(name)s][%(levelname)s] - %(message)s",

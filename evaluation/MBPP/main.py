@@ -6,9 +6,9 @@ import json
 import logging
 import os
 
-from postprocess import PostProcessor
-from execution import evaluate_with_test_code
-from evaluation import pass_at_K
+from .postprocess import PostProcessor
+from .execution import evaluate_with_test_code
+from .evaluation import pass_at_K
 
 logging.basicConfig(
     format="SystemLog: [%(asctime)s][%(name)s][%(levelname)s] - %(message)s",
@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_path_for_solution", type=str, help="model input file in .jsonl format",
-                        default='./../../src/data/MBPP_ET_v2.jsonl')  # mbpp_sanitized_microsoft.jsonl # MBPP_ET_v2.jsonl
+                        default='./data/clarifygpt_mbpp/mbpp_sanitized_microsoft.jsonl')  # mbpp_sanitized_microsoft.jsonl # MBPP_ET_v2.jsonl
     parser.add_argument("--predict_path_for_solution", type=str, help="model output file in .jsonl format",
-                        default='./../../src/data/mbpp_final_three_shot_gpt4_1.jsonl')
-    # './../../src/data/mbpp_final_zero_shot_gpt4_3.jsonl'
-    # './../../src/data/gpt4_greedy_mbpp/mbpp_sanitized_microsoft_greedy_0.0_3_results_final_gpt4_1.jsonl'
+                        default='./data/clarifygpt_mbpp/mbpp_final_three_shot_chatgpt.jsonl')
+    # './../../data/clarifygpt_mbpp/mbpp_final_zero_shot_gpt4_3.jsonl'
+    # './../../data/clarifygpt_mbpp/gpt4_greedy_mbpp/mbpp_sanitized_microsoft_greedy_0.0_3_results_final_gpt4_1.jsonl'
     # parser.add_argument("--source_path_for_test", type=str, help="model input file in .jsonl format")
     # parser.add_argument("--predict_path_for_test", type=str, help="model output file in .jsonl format")
 
