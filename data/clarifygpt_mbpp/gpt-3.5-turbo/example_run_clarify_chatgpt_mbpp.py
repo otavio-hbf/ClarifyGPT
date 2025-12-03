@@ -1,19 +1,12 @@
 import json
 import copy
-import os
-from .utils import *
+from utils import *
 from src.parallel_request import parallel_request_openai
 from src.prompt.prompt_mbpp import *
 import functools
 from threading import Thread
 from tqdm import tqdm
-from dotenv import load_dotenv
-# Carrega as variáveis do .env que está na mesma pasta deste arquivo
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-dotenv_path = os.path.abspath(dotenv_path)
-load_dotenv(dotenv_path=dotenv_path)
 
-MODEL_NAME = os.getenv("MODEL_NAME")
 
 # 1. run sample codes on tests, get task_id of the unclear prompts
 def runTests_getTaskID(sample_code_file, tests_file, save_path=None):
@@ -42,7 +35,7 @@ def runTests_getTaskID(sample_code_file, tests_file, save_path=None):
             all_test_results = {}
             for i in range(15):
                 generated_raw_code = sample_code_line[2]['choices'][i]["message"]['content']
-                complete_code = parse_code_w_prompt_mbpp(MODEL_NAME, generated_raw_code, prompt, entry_point)
+                complete_code = parse_code_w_prompt_mbpp('gpt-3.5', generated_raw_code, prompt, entry_point)
                 test_result = []
                 for test in tests:
                     test_list = test.split('\n')
@@ -103,9 +96,6 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
     if askcq_path is None:
         askcq_path = needcq_file.replace(".jsonl", "_askcq.jsonl")
 
-    # Garante que o diretório existe
-    os.makedirs(os.path.dirname(askcq_path), exist_ok=True)
-
     with open(askcq_path, 'w') as w:
         for data_line in data_lines:
             data_line = json.loads(data_line)
@@ -129,16 +119,15 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                     'role': 'user',
                     'content': f'User Requirement:\n{ori_prompt.strip()}\n{code_string.strip()}'
                 })
-            json_dict = dict(
-                model=MODEL_NAME,
-                messages=openai_messages,
-                temperature=0.0,
-                max_tokens=800,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                n=1,
-            )
+            json_dict = dict(model='gpt-3.5-turbo',
+                             messages=openai_messages,
+                             temperature=0.0,
+                             max_tokens=800,
+                             top_p=0.95,
+                             frequency_penalty=0,
+                             presence_penalty=0,
+                             n=1,
+                             )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -147,11 +136,11 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
             w.write(json_string + "\n")
 
     if askcq_results_path is None:
+        parallel_request_openai(requests_filepath=askcq_path)
         askcq_results_path = askcq_path.replace(".jsonl", "_results.jsonl")
-    # ensure fresh results file
-    if os.path.exists(askcq_results_path):
-        os.remove(askcq_results_path)
-    parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
+    else:
+        parallel_request_openai(requests_filepath=askcq_path, save_filepath=askcq_results_path)
+
     return askcq_path, askcq_results_path
 
 
@@ -171,9 +160,6 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
     if answercq_path is None:
         answercq_path = askcq_results_path.replace(".jsonl", "_answercq.jsonl")
 
-    # Garanta que o diretório existe
-    os.makedirs(os.path.dirname(answercq_path), exist_ok=True)
-
     with open(answercq_path, 'w') as w:
         for ori_data_line, data_line in zip(ori_data_lines, data_lines):
             ori_data_line = json.loads(ori_data_line)
@@ -189,16 +175,15 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(
-                model=MODEL_NAME,
-                messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                n=1,
-                )
+            json_dict = dict(model='gpt-3.5-turbo',
+                             messages=openai_messages,
+                             temperature=0.0,
+                             max_tokens=300,
+                             top_p=0.95,
+                             frequency_penalty=0,
+                             presence_penalty=0,
+                             n=1,
+                             )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -206,10 +191,11 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
             w.write(json_string + "\n")
 
     if answercq_results_path is None:
+        parallel_request_openai(requests_filepath=answercq_path)
         answercq_results_path = answercq_path.replace(".jsonl", "_results.jsonl")
-    if os.path.exists(answercq_results_path):
-        os.remove(answercq_results_path)
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
+    else:
+        parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path)
+
     return answercq_path, answercq_results_path
 
 
@@ -226,16 +212,10 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
 
     # sort
     data_lines = sort_parallel_datalines(data_lines)
-    print(f"askcq_results_path (data_lines): {len(data_lines)}")
-    print(f"needcq_file (ori_data_lines): {len(ori_data_lines)}")
-    print(f"test_file (test_lines): {len(test_lines)}")
     assert len(data_lines) == len(ori_data_lines) == len(test_lines)
 
     if answercq_path is None:
         answercq_path = askcq_results_path.replace(".jsonl", "_answercq.jsonl")
-
-    # Garanta que o diretório existe
-    os.makedirs(os.path.dirname(answercq_path), exist_ok=True)
 
     with open(answercq_path, 'w') as w:
         for ori_data_line, data_line, test_line in zip(ori_data_lines, data_lines, test_lines):
@@ -243,7 +223,6 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
             data_line = json.loads(data_line)
             test_line = json.loads(test_line)
             assert test_line['task_id'] == ori_data_line['task_id']
-            print(data_line[2]['choices'][0]["message"]['content'])
             cq = parse_cq_mbpp(data_line[2]['choices'][0]["message"]['content'])
             python_func = test_line['solution']
             test_cases = '\n'.join(test_line['test_list'])
@@ -257,16 +236,15 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(
-                model=MODEL_NAME,
-                messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                n=1,
-                )
+            json_dict = dict(model='gpt-3.5-turbo',
+                             messages=openai_messages,
+                             temperature=0.0,
+                             max_tokens=300,
+                             top_p=0.95,
+                             frequency_penalty=0,
+                             presence_penalty=0,
+                             n=1,
+                             )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-3]['content'])
             # print(json_dict['messages'][-2]['content'])
@@ -276,12 +254,11 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
             w.write(json_string + "\n")
 
     if answercq_results_path is None:
+        parallel_request_openai(requests_filepath=answercq_path)
         answercq_results_path = answercq_path.replace(".jsonl", "_results.jsonl")
     else:
-        answercq_results_path = answercq_results_path
-    if os.path.exists(answercq_results_path):
-        os.remove(answercq_results_path)
-    parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path, api_key=os.getenv("OPENAI_API_KEY"))
+        parallel_request_openai(requests_filepath=answercq_path, save_filepath=answercq_results_path)
+
     return answercq_path, answercq_results_path
 
 
@@ -302,9 +279,6 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
     if synthesize_path is None:
         synthesize_path = answercq_results_path.replace(".jsonl", "_synthesize.jsonl")
 
-    # Garanta que o diretório existe
-    os.makedirs(os.path.dirname(synthesize_path), exist_ok=True)
-
     with open(synthesize_path, 'w') as w:
         for ori_data_line, ask_data_line, answer_data_line in zip(ori_data_lines, ask_data_lines, answer_data_lines):
             ori_data_line = json.loads(ori_data_line)
@@ -324,16 +298,15 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                            # f'\n{clarification}'
             })
 
-            json_dict = dict(
-                model=MODEL_NAME,
-                messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                n=1,
-                )
+            json_dict = dict(model='gpt-3.5-turbo',
+                             messages=openai_messages,
+                             temperature=0.0,
+                             max_tokens=300,
+                             top_p=0.95,
+                             frequency_penalty=0,
+                             presence_penalty=0,
+                             n=1,
+                             )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][1]['content'])
             # print(json_dict['messages'][2]['content'])
@@ -344,10 +317,11 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
             w.write(json_string + "\n")
 
     if synthesize_results_path is None:
+        parallel_request_openai(requests_filepath=synthesize_path)
         synthesize_results_path = synthesize_path.replace(".jsonl", "_results.jsonl")
-    if os.path.exists(synthesize_results_path):
-        os.remove(synthesize_results_path)
-    parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path, api_key=os.getenv("OPENAI_API_KEY"))
+    else:
+        parallel_request_openai(requests_filepath=synthesize_path, save_filepath=synthesize_results_path)
+    # assert 1==2
     return synthesize_path, synthesize_results_path
 
 
@@ -380,9 +354,6 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
             modified_code_dict['code_list'][i].append(generated_raw_code)
         assert len(modified_code_dict['task_id_list']) == len(modified_code_dict['code_list'][i])
 
-    # Garanta que o diretório existe
-    os.makedirs(os.path.dirname(final_path), exist_ok=True)
-
     with open(final_path, 'w') as w:
         for ori_idx, ori_data_line in enumerate(ori_data_lines):
             ori_data_line = json.loads(ori_data_line)
@@ -398,7 +369,7 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
                     idx = modified_code_dict['task_id_list'].index(task_id)
                     generated_raw_code = modified_code_dict['code_list'][greedy_idx][idx]
                     ori_prompt = ori_data_line['prompt']
-                    code_completion = parse_code_wo_prompt(MODEL_NAME, generated_raw_code, ori_prompt, entry_point)
+                    code_completion = parse_code_wo_prompt('gpt-3.5', generated_raw_code, ori_prompt, entry_point)
                     json.dump(dict(prompt=ori_data_line['prompt'], samples=[code_completion]), w)
                     w.write('\n')
 
@@ -406,72 +377,31 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
 
 
 if __name__ == '__main__':
-    # Criar diretório de dados se não existir
-    data_dir = os.path.join('data', 'clarifygpt_mbpp', MODEL_NAME)
-    os.makedirs(data_dir, exist_ok=True)
-
-    # Função auxiliar para garantir que o diretório de um arquivo existe
-    def ensure_dir_exists(filepath):
-        """Garante que o diretório do arquivo existe"""
-        if filepath:
-            dir_path = os.path.dirname(filepath)
-            if dir_path:
-                os.makedirs(dir_path, exist_ok=True)
-    
-    # Função auxiliar para garantir que o arquivo existe
-    def ensure_file_exists(filepath):
-        """Garante que o arquivo existe, criando um arquivo vazio se necessário"""
-        if filepath:
-            ensure_dir_exists(filepath)
-            if not os.path.exists(filepath):
-                with open(filepath, 'w') as f:
-                    pass  # Cria um arquivo vazio
-    
     inference_type = 'three_shot'
+    sample_code_file = './../clarifygpt_mbpp/mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl'
+    test_case_file = './../clarifygpt_mbpp/mbpp_tests_final.jsonl'
+    mbpp_file = './../clarifygpt_mbpp/mbpp_sanitized_microsoft.jsonl'
+    greedy_generate_file = './../clarifygpt_mbpp/mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl'
 
-    sample_code_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl')
-    ensure_file_exists(sample_code_file)
+    needcq_path = runTests_getTaskID(sample_code_file, test_case_file,
+                                     f'./../clarifygpt_mbpp/mbpp_needcq_chatgpt.jsonl')
 
-    test_case_file = os.path.join(data_dir, 'mbpp_tests_final.jsonl')
-    ensure_file_exists(test_case_file)
+    ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path,
+                                                  f'./../clarifygpt_mbpp/mbpp_askcq_{inference_type}_chatgpt.jsonl')
 
-    mbpp_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft.jsonl')
-    ensure_file_exists(mbpp_file)
+    answer_path, answer_results_path = answercq_w_test_runRequest('./../clarifygpt_mbpp/mbpp_test_cases_chatgpt.jsonl',
+                                                                  inference_type + '_w_test',
+                                                                  needcq_path,
+                                                                  ask_results_path,
+                                                                  f'./../clarifygpt_mbpp/mbpp_answercq_{inference_type}_chatgpt.jsonl')
 
-    greedy_generate_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl')
-    ensure_file_exists(greedy_generate_file)
-
-    needcq_path = os.path.join(data_dir, 'mbpp_needcq_chatgpt.jsonl')
-    ensure_file_exists(needcq_path)
-    # needcq_path = runTests_getTaskID(sample_code_file, test_case_file, needcq_path)
-
-    ask_path = os.path.join(data_dir, f'mbpp_askcq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(ask_path)
-    ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path, ask_path)
-    ensure_file_exists(ask_path)
-    ensure_file_exists(ask_results_path)
-
-    answer_path = os.path.join(data_dir, f'mbpp_answercq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(answer_path)
-    answer_path, answer_results_path = answercq_w_test_runRequest(
-        os.path.join(data_dir, 'mbpp_test_cases_chatgpt.jsonl'),
-        inference_type + '_w_test',
-        needcq_path,
-        ask_results_path,
-        answer_path)
-    ensure_file_exists(answer_path)
-    ensure_file_exists(answer_results_path)
-
-    synthesize_path = os.path.join(data_dir, f'mbpp_synthesize_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(synthesize_path)
     synthesize_path, synthesize_results_path = synthesize_runRequest(inference_type, needcq_path,
                                                                      ask_results_path,
                                                                      answer_results_path,
-                                                                     synthesize_path)
-    ensure_file_exists(synthesize_results_path)
+                                                                     f'./../clarifygpt_mbpp/mbpp_synthesize_{inference_type}_chatgpt.jsonl')
 
-    final_path = os.path.join(data_dir, f'mbpp_final_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(final_path)
+    # synthesize_results_list.append(synthesize_results_path)
+
     generate_file(mbpp_file, greedy_generate_file, needcq_path,
                   [synthesize_results_path],
-                  final_path)
+                  f'./../clarifygpt_mbpp/mbpp_final_{inference_type}_chatgpt.jsonl')
