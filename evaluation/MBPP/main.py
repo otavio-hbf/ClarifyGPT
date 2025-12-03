@@ -9,6 +9,13 @@ import os
 from .postprocess import PostProcessor
 from .execution import evaluate_with_test_code
 from .evaluation import pass_at_K
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join('src', '.env')
+dotenv_path = os.path.abspath(dotenv_path)
+load_dotenv(dotenv_path=dotenv_path)
+
+MODEL_NAME = os.getenv("MODEL_NAME")
 
 logging.basicConfig(
     format="SystemLog: [%(asctime)s][%(name)s][%(levelname)s] - %(message)s",
@@ -20,10 +27,11 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    data_dir = os.path.join('data', 'clarifygpt_mbpp', MODEL_NAME)
     parser.add_argument("--source_path_for_solution", type=str, help="model input file in .jsonl format",
-                        default='./data/clarifygpt_mbpp/mbpp_sanitized_microsoft.jsonl')  # mbpp_sanitized_microsoft.jsonl # MBPP_ET_v2.jsonl
+                        default=os.path.join(data_dir, 'mbpp_sanitized_microsoft.jsonl'))
     parser.add_argument("--predict_path_for_solution", type=str, help="model output file in .jsonl format",
-                        default='./data/clarifygpt_mbpp/mbpp_final_three_shot_chatgpt.jsonl')
+                        default=os.path.join(data_dir, 'mbpp_final_three_shot_chatgpt.jsonl'))
     # './../../data/clarifygpt_mbpp/mbpp_final_zero_shot_gpt4_3.jsonl'
     # './../../data/clarifygpt_mbpp/gpt4_greedy_mbpp/mbpp_sanitized_microsoft_greedy_0.0_3_results_final_gpt4_1.jsonl'
     # parser.add_argument("--source_path_for_test", type=str, help="model input file in .jsonl format")
@@ -36,7 +44,7 @@ if __name__ == '__main__':
     # print(handled_test_cases)
     # assert 1==2
     ground_truth_exec_result = evaluate_with_test_code(handled_solutions, timeout=0.1)
-    with open(args.predict_path_for_solution.replace('.jsonl', '.results_jsonl'), 'w') as w:
+    with open(args.predict_path_for_solution.replace('.jsonl', '_results.jsonl'), 'w') as w:
         for data_line in ground_truth_exec_result:
             json.dump(data_line, w)
             w.write('\n')

@@ -1,8 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import sys
 import ctypes
-libgcc_s = ctypes.CDLL('libgcc_s.so.1')
+if sys.platform.startswith("linux"):
+    libgcc_s = ctypes.CDLL('libgcc_s.so.1')
 
 from collections import defaultdict
 from concurrent.futures import as_completed, ProcessPoolExecutor
