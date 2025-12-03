@@ -134,7 +134,7 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                reasoning_effort = 'low',
+                reasoning_effort = 'medium',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -192,7 +192,7 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                reasoning_effort = 'low',
+                reasoning_effort = 'medium',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -258,7 +258,7 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                reasoning_effort = 'low',
+                reasoning_effort = 'medium',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -323,7 +323,7 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                reasoning_effort = 'low',
+                reasoning_effort = 'medium',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
