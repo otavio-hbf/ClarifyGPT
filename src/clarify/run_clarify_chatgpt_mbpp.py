@@ -132,11 +132,9 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
             json_dict = dict(
                 model=MODEL_NAME,
                 messages=openai_messages,
-                temperature=0.0,
-                max_tokens=800,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                reasoning_effort = 'low',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -192,13 +190,11 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
             json_dict = dict(
                 model=MODEL_NAME,
                 messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                reasoning_effort = 'low',
                 n=1,
-                )
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -260,13 +256,11 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
             json_dict = dict(
                 model=MODEL_NAME,
                 messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                reasoning_effort = 'low',
                 n=1,
-                )
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-3]['content'])
             # print(json_dict['messages'][-2]['content'])
@@ -327,13 +321,11 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
             json_dict = dict(
                 model=MODEL_NAME,
                 messages=openai_messages,
-                temperature=0.0,
-                max_tokens=300,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
+                temperature=1.0,
+                max_completion_tokens=3000,
+                reasoning_effort = 'low',
                 n=1,
-                )
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][1]['content'])
             # print(json_dict['messages'][2]['content'])
