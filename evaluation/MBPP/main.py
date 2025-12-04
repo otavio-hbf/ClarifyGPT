@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # print(handled_test_cases)
     # assert 1==2
     ground_truth_exec_result = evaluate_with_test_code(handled_solutions, timeout=0.1)
-    with open(args.predict_path_for_solution.replace('.jsonl', '.results_jsonl'), 'w') as w:
+    with open(args.predict_path_for_solution.replace('.jsonl', '_results.jsonl'), 'w') as w:
         for data_line in ground_truth_exec_result:
             json.dump(data_line, w)
             w.write('\n')
