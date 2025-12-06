@@ -2,7 +2,7 @@ import os
 import requests
 import json
 
-url = "https://api.openai.com/v1/chat/completions"
+url = "https://api.deepseek.com/chat/completions"
 headers = {
     "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
     "Content-Type": "application/json"

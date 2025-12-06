@@ -310,8 +310,9 @@ class APIRequest:
 
 def api_endpoint_from_url(request_url):
     """Extract the API endpoint from the request URL."""
-    match = re.search('^https://[^/]+/v\\d+/(.+)$', request_url)
-    return match[1]
+    # match = re.search('^https://[^/]+/v\\d+/(.+)$', request_url)
+    # return match[1]
+    return request_url
 
 
 def append_to_jsonl(data, filename: str) -> None:
@@ -326,52 +327,56 @@ def num_tokens_consumed_from_request(
     api_endpoint: str,
     token_encoding_name: str,
 ):
-    """Count the number of tokens in the request. Only supports completion and embedding requests."""
-    encoding = tiktoken.get_encoding(token_encoding_name)
-    # if completions request, tokens = prompt + n * max_tokens
-    if api_endpoint.endswith("completions"):
-        max_tokens = request_json.get("max_completion_tokens", 15)
-        n = request_json.get("n", 1)
-        completion_tokens = n * max_tokens
+    """Count the number of tokens in the request. Supports Chat and Legacy Completions."""
+    try:
+        encoding = tiktoken.get_encoding(token_encoding_name)
+    except:
+        # Fallback para o encoding padrão se o nome específico falhar
+        encoding = tiktoken.get_encoding("cl100k_base")
 
-        # chat completions
-        if api_endpoint.startswith("chat/"):
-            num_tokens = 0
-            for message in request_json["messages"]:
-                num_tokens += 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
-                for key, value in message.items():
+    num_tokens = 0
+
+    # --- 1. Cálculo dos Tokens de Entrada (Input) ---
+
+    # Se tiver "messages", é Chat (GPT-3.5/4/DeepSeek)
+    if "messages" in request_json:
+        for message in request_json["messages"]:
+            # Cada mensagem tem um overhead fixo de tokens (protocolo ChatML)
+            num_tokens += 4  
+            for key, value in message.items():
+                # Conta tokens apenas de valores string
+                if isinstance(value, str):
                     num_tokens += len(encoding.encode(value))
-                    if key == "name":  # if there's a name, the role is omitted
-                        num_tokens -= 1  # role is always required and always 1 token
-            num_tokens += 2  # every reply is primed with <im_start>assistant
-            return num_tokens + completion_tokens
-        # normal completions
-        else:
-            prompt = request_json["prompt"]
-            if isinstance(prompt, str):  # single prompt
-                prompt_tokens = len(encoding.encode(prompt))
-                num_tokens = prompt_tokens + completion_tokens
-                return num_tokens
-            elif isinstance(prompt, list):  # multiple prompts
-                prompt_tokens = sum([len(encoding.encode(p)) for p in prompt])
-                num_tokens = prompt_tokens + completion_tokens * len(prompt)
-                return num_tokens
-            else:
-                raise TypeError('Expecting either string or list of strings for "prompt" field in completion request')
-    # if embeddings request, tokens = input tokens
-    elif api_endpoint == "embeddings":
-        input = request_json["input"]
-        if isinstance(input, str):  # single input
-            num_tokens = len(encoding.encode(input))
-            return num_tokens
-        elif isinstance(input, list):  # multiple inputs
-            num_tokens = sum([len(encoding.encode(i)) for i in input])
-            return num_tokens
-        else:
-            raise TypeError('Expecting either string or list of strings for "inputs" field in embedding request')
-    # more logic needed to support other API calls (e.g., edits, inserts, DALL-E)
-    else:
-        raise NotImplementedError(f'API endpoint "{api_endpoint}" not implemented in this script')
+                if key == "name":
+                    num_tokens -= 1  # Ajuste fino se houver nome
+        num_tokens += 2  # Priming da resposta do assistente
+
+    # Se tiver "prompt", é Completion Antigo (Legacy)
+    elif "prompt" in request_json:
+        prompt = request_json["prompt"]
+        if isinstance(prompt, str):
+            num_tokens = len(encoding.encode(prompt))
+        elif isinstance(prompt, list):
+            num_tokens = sum([len(encoding.encode(p)) for p in prompt])
+    
+    # Se for embeddings
+    elif "input" in request_json:
+        inp = request_json["input"]
+        if isinstance(inp, str):
+            num_tokens = len(encoding.encode(inp))
+        elif isinstance(inp, list):
+            num_tokens = sum([len(encoding.encode(i)) for i in inp])
+        return num_tokens
+
+    # --- 2. Cálculo dos Tokens de Saída (Output Estimado) ---
+    
+    # Tenta pegar 'max_tokens' (comum) ou 'max_completion_tokens' (novo padrão OpenAI)
+    # Se nenhum existir, assume 15 (padrão antigo)
+    max_tokens = request_json.get("max_tokens") or request_json.get("max_completion_tokens") or 15
+    n = request_json.get("n", 1)
+    completion_tokens = n * max_tokens
+
+    return num_tokens + completion_tokens
 
 
 def task_id_generator_function():
@@ -386,7 +391,7 @@ def parallel_request_openai(
         requests_filepath,
         save_filepath=None,
         log_save_filepath=None,
-        request_url="https://api.openai.com/v1/chat/completions",
+        request_url="https://api.deepseek.com/chat/completions",
         api_key= os.getenv("OPENAI_API_KEY"),
         max_requests_per_minute=3_500 * 0.95,
         max_tokens_per_minute=90_000 * 0.95,

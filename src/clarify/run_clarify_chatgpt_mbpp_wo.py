@@ -126,7 +126,7 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                     'role': 'user',
                     'content': f'User Requirement:\n{ori_prompt.strip()}\n{code_string.strip()}'
                 })
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='deepseek-chat',
                              messages=openai_messages,
                              temperature=0.0,
                              max_tokens=800,
@@ -190,7 +190,7 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='deepseek-chat',
                              messages=openai_messages,
                              temperature=0.0,
                              max_tokens=300,
@@ -259,7 +259,7 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                            f'\n\n### Answers:\n{{insert answers here}}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='deepseek-chat',
                              messages=openai_messages,
                              temperature=0.0,
                              max_tokens=300,
@@ -331,7 +331,7 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                            # f'\n{clarification}'
             })
 
-            json_dict = dict(model='gpt-3.5-turbo',
+            json_dict = dict(model='deepseek-chat',
                              messages=openai_messages,
                              temperature=0.0,
                              max_tokens=300,
