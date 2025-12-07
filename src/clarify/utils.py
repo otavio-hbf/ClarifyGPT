@@ -121,90 +121,31 @@ def parse_code_wo_prompt(model_name, generated_code, prompt, entry_point):
     if MODEL_NAME in model_name:
         gen = clean_format(generated_code)
 
-        # Strip any trailing/leading whitespace from entry_point
+        # Strip whitespace from entry_point to avoid mismatch with generated code
         entry_point_clean = entry_point.strip()
-        func_sig_pattern = f'def {entry_point_clean}'
+        func_sig = 'def ' + entry_point_clean
         
         if gen.startswith(prompt.strip()):
             gen = gen.split(prompt.strip())[-1]
-        elif func_sig_pattern in gen:
+        elif func_sig in gen:
             gen_list = gen.split('\n')
-            
-            # Find the LAST occurrence of the function signature
-            last_func_idx = -1
-            for i, cur_gen in enumerate(gen_list):
-                stripped_line = cur_gen.strip()
-                # Check if line starts with "def entry_point" followed by optional space and parenthesis
-                # This handles: "def func(", "def func (", "def func  ("
-                if stripped_line.startswith(func_sig_pattern):
-                    # Make sure it's followed by whitespace or parenthesis (not part of a longer name)
-                    rest = stripped_line[len(func_sig_pattern):]
-                    if rest and rest[0] in (' ', '('):
-                        last_func_idx = i
-            
-            if last_func_idx == -1:
-                # Fallback: try to find any line containing the function name
-                print(f"# WARNING: Exact function signature not found, attempting flexible match")
-                print(f"Looking for: {func_sig_pattern}")
-                print(f"Generated code:\n{gen}")
-                
-                for i, line in enumerate(gen_list):
-                    if f'def {entry_point_clean}' in line:
-                        last_func_idx = i
-                        break
-                
-                if last_func_idx == -1:
-                    gen = f"# CANNOT PARSE CODE SNIPPET - No function definition found\n{gen}"
-                    print("# FALLBACK FAILED - returning unparsed code")
-                    return gen
-            
-            # Extract from the line AFTER the function definition
-            gen = '\n'.join(gen_list[last_func_idx + 1:])
-            
-            # Clean up: remove docstrings and trailing content
-            gen_lines = gen.split('\n')
-            cleaned_lines = []
-            in_docstring = False
-            docstring_delimiter = None
-            
-            for line in gen_lines:
-                stripped = line.strip()
-                
-                # Skip empty lines at the start
-                if not cleaned_lines and not stripped:
-                    continue
-                
-                # Track docstrings (handle both """ and ''')
-                if not in_docstring:
-                    if stripped.startswith('"""') or stripped.startswith("'''"):
-                        docstring_delimiter = stripped[:3]
-                        in_docstring = True
-                        # Check if docstring closes on same line
-                        if stripped.count(docstring_delimiter) >= 2:
-                            in_docstring = False
-                        continue
-                else:
-                    # We're inside a docstring, check if it closes
-                    if docstring_delimiter in stripped:
-                        in_docstring = False
-                    continue
-                
-                # Stop if we hit another function definition
-                if stripped.startswith('def ') and entry_point_clean not in stripped:
+            idx = 0
+            for cur_gen in gen_list:
+                if cur_gen.startswith(func_sig):
                     break
-                
-                cleaned_lines.append(line)
-            
-            gen = '\n'.join(cleaned_lines).strip()
-            
+                else:
+                    idx += 1
+            if idx >= len(gen_list):
+                gen = f"# CANNOT PARSE CODE SNIPPET\n{gen}"
+                print(prompt)
+                print(gen)
+                assert 1 == 2
+            gen = '\n'.join(gen_list[idx + 1:])
         else:
-            print("# WARNING: Function signature not found in generated code")
-            print(f"Expected: {func_sig_pattern}")
-            print(f"Prompt:\n{prompt}")
+            print("# CANNOT PARSE CODE SNIPPET")
+            print(prompt)
             print('---------------------------')
-            print(f"Generated:\n{gen}")
-            
-            # Fallback: try to extract the first indented code block
+            print(gen)
             gen_list = gen.split('\n')
             idx = 0
             for cur_gen in gen_list:
@@ -212,12 +153,7 @@ def parse_code_wo_prompt(model_name, generated_code, prompt, entry_point):
                     break
                 else:
                     idx += 1
-            
-            if idx < len(gen_list):
-                gen = '\n'.join(gen_list[idx:])
-            else:
-                # Last resort: return the whole thing with a warning comment
-                gen = f"# CANNOT PARSE CODE SNIPPET - Using full output\n{gen}"
+            gen = '\n'.join(gen_list[idx:])
     else:
         pass
     return gen
