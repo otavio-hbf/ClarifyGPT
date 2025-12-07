@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 
-from io_utils import Tools
+from .io_utils import Tools
 
 STOP_TOKEN = ['\nclass', '\ndef', '\n#', '\nif', '\nprint']
 

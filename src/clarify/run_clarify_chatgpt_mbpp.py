@@ -134,9 +134,7 @@ def askcq_runRequest(inference_type, needcq_file, askcq_path=None, askcq_results
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                # top_p=0.95,  # Remove: not supported by GPT-5 Nano
-                frequency_penalty=0,
-                presence_penalty=0,
+                reasoning_effort = 'low',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -194,11 +192,9 @@ def answercq_runRequest(inference_type, needcq_file, askcq_results_path, answerc
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                # top_p=1,  # Remove: not supported by GPT-5 Nano
-                frequency_penalty=0,
-                presence_penalty=0,
+                reasoning_effort = 'low',
                 n=1,
-                )
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-1]['content'])
             # print('=========================================')
@@ -262,11 +258,9 @@ def answercq_w_test_runRequest(test_file, inference_type, needcq_file, askcq_res
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                # top_p=1,  # Remove: not supported by GPT-5 Nano
-                frequency_penalty=0,
-                presence_penalty=0,
+                reasoning_effort = 'low',
                 n=1,
-                )
+            )
             # print(json_dict['messages'][0]['content'])
             # print(json_dict['messages'][-3]['content'])
             # print(json_dict['messages'][-2]['content'])
@@ -329,9 +323,7 @@ def synthesize_runRequest(inference_type, needcq_file, askcq_results_path, answe
                 messages=openai_messages,
                 temperature=1.0,
                 max_completion_tokens=3000,
-                # top_p=1,  # Remove: not supported by GPT-5 Nano
-                frequency_penalty=0,
-                presence_penalty=0,
+                reasoning_effort = 'low',
                 n=1,
             )
             # print(json_dict['messages'][0]['content'])
@@ -407,7 +399,7 @@ def generate_file(humaneval_file, greedy_generate_file, needcq_path, synthesize_
 
 if __name__ == '__main__':
     # Criar diretório de dados se não existir
-    data_dir = os.path.join('data', 'clarifygpt_mbpp')
+    data_dir = os.path.join('data', 'clarifygpt_mbpp', MODEL_NAME)
     os.makedirs(data_dir, exist_ok=True)
 
     # Função auxiliar para garantir que o diretório de um arquivo existe
@@ -429,49 +421,44 @@ if __name__ == '__main__':
     
     inference_type = 'three_shot'
 
-    sample_code_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl')
-    ensure_file_exists(sample_code_file)
-
-    test_case_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_tests_final.jsonl')
-    ensure_file_exists(test_case_file)
-
-    mbpp_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft.jsonl')
-    ensure_file_exists(mbpp_file)
-
-    greedy_generate_file = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl')
-    ensure_file_exists(greedy_generate_file)
-
-    needcq_path = os.path.join('data', 'clarifygpt_mbpp', 'mbpp_needcq_chatgpt.jsonl')
-    ensure_file_exists(needcq_path)
+    # INPUT FILES - these must exist with data
+    sample_code_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft_sample_0.8_15_chatgpt_results.jsonl')
+    test_case_file = os.path.join(data_dir, 'mbpp_tests_final.jsonl')
+    mbpp_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft.jsonl')
+    greedy_generate_file = os.path.join(data_dir, 'mbpp_sanitized_microsoft_greedy_0.0_1_chatgpt_results_final.jsonl')
+    needcq_path = os.path.join(data_dir, 'mbpp_needcq_chatgpt.jsonl')
+    
+    # STAGE 1 - Generate needcq file (already commented out by default)
     # needcq_path = runTests_getTaskID(sample_code_file, test_case_file, needcq_path)
 
-    ask_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_askcq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(ask_path)
-    ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path, ask_path)
-    ensure_file_exists(ask_path)
-    ensure_file_exists(ask_results_path)
+    # STAGE 2 - Ask clarifying questions (COMMENTED OUT - using existing results)
+    ask_path = os.path.join(data_dir, f'mbpp_askcq_{inference_type}_chatgpt.jsonl')
+    ask_results_path = os.path.join(data_dir, f'mbpp_askcq_{inference_type}_chatgpt_results.jsonl')
+    # ask_path, ask_results_path = askcq_runRequest(inference_type, needcq_path, ask_path)
 
-    answer_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_answercq_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(answer_path)
-    answer_path, answer_results_path = answercq_w_test_runRequest(
-        os.path.join('data', 'clarifygpt_mbpp', 'mbpp_test_cases_chatgpt.jsonl'),
-        inference_type + '_w_test',
-        needcq_path,
-        ask_results_path,
-        answer_path)
-    ensure_file_exists(answer_path)
-    ensure_file_exists(answer_results_path)
+    # STAGE 3 - Answer clarifying questions (COMMENTED OUT - using existing results)
+    answer_path = os.path.join(data_dir, f'mbpp_answercq_{inference_type}_chatgpt.jsonl')
+    answer_results_path = os.path.join(data_dir, f'mbpp_answercq_{inference_type}_chatgpt_results.jsonl')
+    # answer_path, answer_results_path = answercq_w_test_runRequest(
+    #     os.path.join(data_dir, 'mbpp_test_cases_chatgpt.jsonl'),
+    #     inference_type + '_w_test',
+    #     needcq_path,
+    #     ask_results_path,
+    #     answer_path)
 
-    synthesize_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_synthesize_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(synthesize_path)
-    synthesize_path, synthesize_results_path = synthesize_runRequest(inference_type, needcq_path,
-                                                                     ask_results_path,
-                                                                     answer_results_path,
-                                                                     synthesize_path)
-    ensure_file_exists(synthesize_results_path)
+    # STAGE 4 - Synthesize refined prompts (COMMENTED OUT - using existing results)
+    synthesize_path = os.path.join(data_dir, f'mbpp_synthesize_{inference_type}_chatgpt.jsonl')
+    synthesize_results_path = os.path.join(data_dir, f'mbpp_synthesize_{inference_type}_chatgpt_results.jsonl')
+    # synthesize_path, synthesize_results_path = synthesize_runRequest(inference_type, needcq_path,
+    #                                                                  ask_results_path,
+    #                                                                  answer_results_path,
+    #                                                                  synthesize_path)
 
-    final_path = os.path.join('data', 'clarifygpt_mbpp', f'mbpp_final_{inference_type}_chatgpt.jsonl')
-    ensure_file_exists(final_path)
+    # STAGE 5 - Generate final file with improved parser (ONLY THIS RUNS)
+    final_path = os.path.join(data_dir, f'mbpp_final_{inference_type}_chatgpt.jsonl')
+    print(f"Regenerating final file: {final_path}")
+    print(f"Using synthesize results from: {synthesize_results_path}")
     generate_file(mbpp_file, greedy_generate_file, needcq_path,
                   [synthesize_results_path],
                   final_path)
+    print(f"Final file generated successfully: {final_path}")
